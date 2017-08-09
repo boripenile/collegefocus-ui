@@ -11,8 +11,8 @@
       </md-select>
     </md-input-container>
     <md-input-container>
-      <md-select v-model="countryCode" name="countryCode" id="countryCode" 
-        @change="showCountry()">
+      <md-select v-model="stateName" name="stateName" id="stateName" 
+        >
         <md-option v-for="(state, key) in states" :key="key" :value.sync="state.region"
             >
            </md-icon> {{ state.region }}
@@ -35,7 +35,7 @@ export default {
       countryCode: '',
       country: {},
       countries: [],
-      stateCode: '',
+      stateName: '',
       state: {},
       states: []
     }
@@ -56,7 +56,9 @@ export default {
         console.log('Refresh countries')
         CountryAPI.get('all').then(response => {
           var data = response.data
+          console.log('get all')
           if (data.length > 0) {
+            console.log('get all ytgt' + data.length)
             this.$store.commit('SET_COUNTRIES', data)
             countries = data
             return countries
@@ -85,18 +87,16 @@ export default {
     },
     fetchAllStatesByCountry (states) {
       console.log('Refresh states')
-      RegionByCountryAPI.get(this.countryCode+'/all', {
-          params: {
-            key: store.state.COUNTRY_API_KEY
-          }
-      }).then(response => {
+      this.$http.get('https://battuta.medunes.net/api/region/' + this.countryCode + '/all?key=' + store.state.COUNTRY_API_KEY).then(response => {
         var data = response.data
+        console.log('here')
         if (data.length > 0) {
+          console.log('total: ' + data.length)
           states = data
           return states
         }
       }).catch(error => {
-        console.log('Error occured: ' + error)
+        console.log(JSON.stringify(error))
         return {}
       })
     },
@@ -106,14 +106,12 @@ export default {
         var data = response.data
         console.log('Before: ' + data)
         if (data !== null) {
-          country.name = data.name
-          country.alpha2Code = data.alpha2Code
-          country.flag = data.flag
-          console.log(JSON.stringify(country))
-          callback(country)
+          state.stateName = data.region
+          console.log(JSON.stringify(state))
+          callback(state)
         }
       }).catch(error => {
-        console.log('Error occured: ' + error)
+        console.log(JSON.stringify(error))
       })
     }
   }

@@ -21,9 +21,9 @@ export const CountryAPI = axios.create({
 })
 
 export const RegionByCountryAPI = axios.create({
-  baseURL: 'http://battuta.medunes.net/api/region/'
+  baseURL: 'http://battuta.medunes.net/api/region'
 })
 
 export const CityByRegionAPI = axios.create({
-  baseURL: 'http://battuta.medunes.net/api/city/'
+  baseURL: 'https://battuta.medunes.net/api/city/'
 })
