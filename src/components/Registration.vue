@@ -3,7 +3,7 @@
   <md-step md-label="Dunder Miflin">
     <md-input-container>
       <md-select v-model="countryCode" name="countryCode" id="countryCode" 
-        @change="showCountry()">
+        @change="fetchAllStatesByCountry(states)">
         <md-option v-for="(country, key) in fetchAllCountries(countries)" :key="key" :value.sync="country.alpha2Code"
             >
            </md-icon> {{ country.name }}
@@ -13,9 +13,9 @@
     <md-input-container>
       <md-select v-model="countryCode" name="countryCode" id="countryCode" 
         @change="showCountry()">
-        <md-option v-for="(country, key) in fetchAllCountries(countries)" :key="key" :value.sync="country.alpha2Code"
+        <md-option v-for="(state, key) in states" :key="key" :value.sync="state.region"
             >
-           </md-icon> {{ country.name }}
+           </md-icon> {{ state.region }}
         </md-option>
       </md-select>
     </md-input-container>
@@ -85,7 +85,11 @@ export default {
     },
     fetchAllStatesByCountry (states) {
       console.log('Refresh states')
-      RegionByCountryAPI.get('all').then(response => {
+      RegionByCountryAPI.get(this.countryCode+'/all', {
+          params: {
+            key: store.state.COUNTRY_API_KEY
+          }
+      }).then(response => {
         var data = response.data
         if (data.length > 0) {
           states = data
@@ -96,9 +100,9 @@ export default {
         return {}
       })
     },
-    getStateByCode (country, callback) {
-      console.log('Get country details')
-      CountryAPI.get('alpha/' + this.countryCode).then(response => {
+    getStateByCode (state, callback) {
+      console.log('Get state details')
+      RegionByCountryAPI.get('alpha/' + this.countryCode).then(response => {
         var data = response.data
         console.log('Before: ' + data)
         if (data !== null) {

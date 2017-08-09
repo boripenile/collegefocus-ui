@@ -9,5 +9,6 @@ export default {
   rolePermissions: [],
   role: {},
   GEO_API_KEY: 'AIzaSyCy_Q5Pdi8jXOf7ew93zOfr99oL77jJnRk',
-  countries: []
+  countries: [],
+  COUNTRY_API_KEY: '785caf1227be1502db4107297454cb1d'
 }
