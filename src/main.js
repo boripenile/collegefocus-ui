@@ -6,11 +6,12 @@ import VueRouter from 'vue-router'
 import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.css'
 import VueResource from 'vue-resource'
-
+import VueApiRequest from 'vue-api-request'
 import { sync } from 'vuex-router-sync'
 import routes from './routes'
 import store from './store'
 
+Vue.use(VueApiRequest)
 Vue.use(VueMaterial)
 Vue.use(VueResource)
 Vue.use(VueRouter)

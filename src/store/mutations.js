@@ -23,7 +23,7 @@ export default {
   SET_ROLE_PERMISSIONS (state, rolePermissions) {
     state.rolePermissions = rolePermissions
   },
-  SET_COUNTRIES (state, countries) {
-    state.countries = countries
+  SET_COUNTRIES (state, countryResponse) {
+    state.countryResponse = countryResponse
   }
 }

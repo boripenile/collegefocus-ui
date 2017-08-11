@@ -36,6 +36,10 @@ module.exports = {
           formatter: require('eslint-friendly-formatter')
         }
       },
+      { 
+        test: /\.json$/, 
+        loader: 'json-loader' 
+      },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
@@ -71,5 +75,5 @@ module.exports = {
         }
       }
     ]
-  }
+  } 
 }

@@ -1,21 +1,42 @@
 <template>
-  <md-stepper md-vertical>
-  <md-step md-label="Dunder Miflin">
+  <md-layout md-column md-flex="60" md-flex-medium="80" 
+    md-flex-small="80" md-flex-xsmall="100" class="marginal">
+    <md-card-header class="page-header">
+      <img src="../assets/collegefocus_60.png" rel="CollegeFocus" class="image-center"></img>
+      <p class="md-title">School Registration</p>
+    </md-card-header>
+    <md-card-content>
+      <md-stepper md-vertical>
+      <md-step md-label="Dunder Miflin">
+    
+    <api-request :resource="getCountries" v-model="countryResponse">
+      <md-input-container>
+        <md-select v-if="countryResponse !== null" v-model="countryCode" name="countryCode" id="countryCode" 
+          @change="getCountryByCodeAndState(fetchAllStatesByCountry)">
+            <md-option v-for="(country, key) in countryResponse.body" :key="key" :value.sync="country.alpha2Code">
+              {{ country.name }}
+            </md-option>
+        </md-select>
+        <md-select v-else>
+            <md-option value="1">Yes</md-option>
+            <md-option value="2">No</md-option>
+          </md-select>
+        </md-input-container>
+    </api-request>
+    <!-- <api-request>
+      
+    </api-request> -->
     <md-input-container>
-      <md-select v-model="countryCode" name="countryCode" id="countryCode" 
-        @change="fetchAllStatesByCountry(states)">
-        <md-option v-for="(country, key) in fetchAllCountries(countries)" :key="key" :value.sync="country.alpha2Code"
-            >
-           </md-icon> {{ country.name }}
+      <md-select v-if="states != null" v-model="stateName" name="stateName" id="stateName" 
+        >
+        <md-option v-if="states != null" v-for="(state, key) in states" :key="key" :value.sync="state.region">
+           {{ state.region }}
         </md-option>
       </md-select>
-    </md-input-container>
-    <md-input-container>
-      <md-select v-model="stateName" name="stateName" id="stateName" 
+      <md-select v-else="states != null" v-model="stateName" name="stateName" id="stateName" 
         >
-        <md-option v-for="(state, key) in states" :key="key" :value.sync="state.region"
-            >
-           </md-icon> {{ state.region }}
+        <md-option v-for="(state, key) in states" :key="key" :value.sync="state.region">
+           {{ state.region }}
         </md-option>
       </md-select>
     </md-input-container>
@@ -24,17 +45,22 @@
     <p>This seems something I need to focus on just after the first step.</p>
   </md-step>
  </md-stepper>
+    </md-card-content>
+  </md-layout>
 </template>
 
 <script>
 import { CountryAPI, RegionByCountryAPI } from '../http/http-common'
 import store from '../store'
+import jquery from 'jquery'
 export default {
   data () {
     return {
+      total: 0,
       countryCode: '',
       country: {},
       countries: [],
+      countryResponse: null,
       stateName: '',
       state: {},
       states: []
@@ -47,58 +73,70 @@ export default {
     getCountry (response) {
       window.alert('You selected: ' + response.name)
     },
-    fetchAllCountries (countries) {
-      if (store.state.countries !== null && store.state.countries.length > 0) {
+    getCountries () {
+      if (store.state.countryResponse !== null) {
         console.log('Old countries')
-        this.countries = store.state.countries
-        return this.countries
+        return store.state.countryResponse
       } else {
-        console.log('Refresh countries')
-        CountryAPI.get('all').then(response => {
-          var data = response.data
-          console.log('get all')
-          if (data.length > 0) {
-            console.log('get all ytgt' + data.length)
-            this.$store.commit('SET_COUNTRIES', data)
-            countries = data
-            return countries
-          }
-        }).catch(error => {
-          console.log('Error occured: ' + error)
-          return {}
-        })
+        var data = this.$http.get('https://restcountries.eu/rest/v2/all')
+        if (data !== null) {
+          console.log('get all contries' + data)
+          this.$store.commit('SET_COUNTRIES', data)
+          this.countryResponse = data
+          return data
+        }
       }
     },
-    getCountryByCode (country, callback) {
+    getCountryByCodeAndState (callback) {
       console.log('Get country details')
       CountryAPI.get('alpha/' + this.countryCode).then(response => {
         var data = response.data
         console.log('Before: ' + data)
         if (data !== null) {
-          country.name = data.name
-          country.alpha2Code = data.alpha2Code
-          country.flag = data.flag
-          console.log(JSON.stringify(country))
-          callback(country)
+          this.country.name = data.name
+          this.country.alpha2Code = data.alpha2Code
+          this.country.flag = data.flag
+          console.log(JSON.stringify(this.country))
+          callback(this.country)
         }
       }).catch(error => {
         console.log('Error occured: ' + error)
       })
     },
-    fetchAllStatesByCountry (states) {
-      console.log('Refresh states')
-      this.$http.get('https://battuta.medunes.net/api/region/' + this.countryCode + '/all?key=' + store.state.COUNTRY_API_KEY).then(response => {
-        var data = response.data
-        console.log('here')
-        if (data.length > 0) {
-          console.log('total: ' + data.length)
-          states = data
-          return states
+    fetchAllStatesByCountry (selectedCountry) {
+      console.log('Refresh states by country')
+
+      jquery.ajax({
+        // url: 'https://battuta.medunes.net/api/region/' + this.countryCode + '/all/?key=' + store.state.COUNTRY_API_KEY,
+        url: 'https://battuta.medunes.net/api/region/' + selectedCountry.alpha2Code + '/all?key=785caf1227be1502db4107297454cb1d',
+        type: 'GET',
+        dataType: 'application/json',
+        success: function (response) {
+          if (response.statusCode === '301') {
+            console.log('301 - redirect to: ' + response.location)
+          }
+          console.log(JSON.stringify(response))
+          this.states = response
+        },
+        error: function (response) {
+          if (response.statusCode === '301') {
+            console.log('301 - redirect to: ' + response.location)
+          }
+          console.log(JSON.stringify(response))
         }
-      }).catch(error => {
-        console.log(JSON.stringify(error))
-        return {}
       })
+      // this.$http.get('http://battuta.medunes.net/api/region/' + this.countryCode + '/all?key=' + store.state.COUNTRY_API_KEY).then(response => {
+      //   var data = response.data
+      //   console.log('here')
+      //   if (data.length > 0) {
+      //     console.log('total: ' + data.length)
+      //     states = data
+      //     return states
+      //   }
+      // }).catch(error => {
+      //   console.log(JSON.stringify(error))
+      //   return {}
+      // })
     },
     getStateByCode (state, callback) {
       console.log('Get state details')
