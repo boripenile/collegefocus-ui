@@ -21,9 +21,9 @@ export const CountryAPI = axios.create({
 })
 
 export const RegionByCountryAPI = axios.create({
-  baseURL: 'http://battuta.medunes.net/api/region'
+  baseURL: 'http://localhost:8090/collegefocusws/api/commons/'
 })
 
-export const CityByRegionAPI = axios.create({
-  baseURL: 'https://battuta.medunes.net/api/city/'
+export const LgasByRegionAPI = axios.create({
+  baseURL: 'http://localhost:8090/collegefocusws/api/commons/'
 })
