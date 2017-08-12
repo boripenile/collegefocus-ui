@@ -7,10 +7,12 @@ import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.css'
 import VueSuperagent from 'vue-superagent'
 import VueApiRequest from 'vue-api-request'
+import vSelect from 'vue-select'
 import { sync } from 'vuex-router-sync'
 import routes from './routes'
 import store from './store'
 
+Vue.component('v-select', vSelect)
 Vue.use(VueApiRequest)
 Vue.use(VueMaterial)
 Vue.use(VueSuperagent)

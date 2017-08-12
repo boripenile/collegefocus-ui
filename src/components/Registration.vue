@@ -1,5 +1,6 @@
 <template>
-  <md-layout md-column class="marginal">
+  <md-layout md-column class="marginal" md-flex="60"
+            md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
     <md-card-header class="page-header">
       <img src="../assets/collegefocus_60.png" rel="CollegeFocus" class="image-center"></img>
       <p class="md-title">School Registration</p>
@@ -9,47 +10,96 @@
       <md-step md-label="Type of Registration" 
       :md-continue="schoolTypeContinued" 
       md-back-continue="Next" md-icon="person">
-        <md-layout md-row md-gutter md-flex="60" md-align="center"
+        <md-layout md-row md-gutter="16" md-flex="60" md-align="center"
             md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
-          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+          <md-layout class="register" md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
             <label class="md-subheading page-header">Click to select type of registration</label>
             <ul>
-                <li v-for="service in services" v-on:click="toggleRegistration(service)" v-bind:class="{ 'active': service.active}">
+                <li v-for="(service, key) in services" :key="key" 
+                v-on:click="toggleRegistration(service)" v-bind:class="{ 'active': service.active}">
                     {{service.name}}
                 </li>
             </ul>
           </md-layout>
-          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+          <md-layout class="register" md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
             <label class="md-subheading page-header">Click to select type of school</label>
             <ul>
-                <li v-for="school in schools" v-on:click="toggleSchool(school)" v-bind:class="{ 'active': school.active}">
+                <li v-for="(school, key) in schools" :key="key" 
+                v-on:click="toggleSchool(school)" v-bind:class="{ 'active': school.active}">
                     {{school.name}}
                 </li>
             </ul>
           </md-layout>
         </md-layout>
       </md-step>
-      <md-step md-label="Basic Information">
-       <md-layout md-row md-gutter md-flex="60" md-flex-medium="60" md-flex-small="80" md-flex-xsmall="100">
-         <md-layout md-row md-gutter md-flex="60"
-            md-flex-medium="80" md-flex-small="80" md-flex-xsmall="100">
-          <md-layout md-column md-flex="50" md-flex-medium="60" md-flex-small="90" md-flex-xsmall="90">
-            <md-input-container>
+      <md-step md-label="Basic Information" 
+      :md-continue="basicContinued" >
+       <div class="page-header">
+           <p>
+            <span class="md-subheading">Please Complete your basic information</span>
+             <br/><span>(*) indicates required fields</span>   
+           </p>  
+       </div>   
+       <md-layout md-row md-gutter="16" md-align="center">
+          <md-layout md-column md-flex="40" md-flex-medium="50" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
               <label>School Name</label>
-              <md-input @keyup.native="checkBasicInfo"
+              <md-input @keyup.native="checkBasicInfo()"
                 required v-model="schoolData.schoolName"></md-input>
             </md-input-container>
           </md-layout>
-          <md-layout md-column md-flex="50" md-flex-medium="60" md-flex-small="90" md-flex-xsmall="90">
-            <md-input-container>
+          <md-layout md-column md-flex="40" md-flex-medium="50" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
               <label>Abbreviation</label>
               <md-input v-model="schoolData.schoolShortName"></md-input>
             </md-input-container>
           </md-layout>
-        </md-layout>
-         <md-layout md-column md-flex="95" md-flex-medium="90" md-flex-small="80" md-flex-xsmall="100">
-           <api-request :resource="getCountries" v-model="countryResponse">
+       </md-layout>
+       <md-layout md-row md-gutter="16" md-align="center">
+          <md-layout md-column md-flex="40" md-flex-medium="50" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>School Motto</label>
+              <md-input @keyup.native="checkBasicInfo()"
+                required v-model="schoolData.schoolMotto"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="40" md-flex-medium="50" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>School Url</label>
+              <md-input v-model="schoolData.schoolUrl"></md-input>
+            </md-input-container>
+          </md-layout>
+       </md-layout>
+      </md-step>
+      <md-step md-label="Address" :md-continue="addressContinued" 
+      md-icon="home">
+        <div class="page-header">
+           <p>
+            <span class="md-subheading">Please complete your school location</span>
+             <br/><span>(*) indicates required fields</span>   
+           </p>  
+       </div>
+       <md-layout md-row md-gutter="16" md-align="center">
+          <md-layout md-column md-flex="50" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>Address Line  1</label>
+              <md-input @keyup.native="checkAddressInfo()" type="textarea"
+                required v-model="schoolData.address.addressLine1"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="50" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>Address Line  2</label>
+              <md-input @keyup.native="checkAddressInfo()" type="textarea"
+                required v-model="schoolData.address.addressLine2"></md-input>
+            </md-input-container>
+          </md-layout>
+       </md-layout>
+       <md-layout md-row md-gutter="16" md-align="center">
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <api-request :resource="getCountries" v-model="countryResponse">
             <md-input-container>
+              <label>Select your country</label>
               <md-select v-if="countryResponse !== null" v-model="countryCode" name="countryCode" id="countryCode" 
                 @change="getCountryByCodeAndState(fetchAllStatesByCountry)">
                   <md-option v-for="(country, key) in countryResponse.body" :key="key" :value.sync="country.alpha2Code">
@@ -61,23 +111,109 @@
               </md-icon>
             </md-input-container>
           </api-request>
-         </md-layout>
-       </md-layout>
-       <md-layout md-row md-flex="60" md-flex-medium="60" md-flex-small="80" md-flex-xsmall="100">
-         <md-layout md-column md-flex="90" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="100">
-         <md-input-container>
-          <md-select v-if="states != null" v-model="stateName" 
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container>
+              <label>State/Region</label>
+              <md-select v-if="states != null" v-model="stateName"
+                @change="setStateName()"
                 name="stateName" id="stateName">
-            <md-option v-for="(state, key) in states" :key="key" :value.sync="state.stateName">
-              {{ state.stateName }}
-            </md-option>
-          </md-select>
-        </md-input-container>
-        </md-layout>
+                    <md-option v-for="(state, key) in states" :key="key" 
+                    v-if="state.stateName.indexOf('?') === -1 && state.stateName !== null"
+                    :value.sync="state.stateName">
+                           {{ state.stateName }}        
+                    </md-option>
+                </md-select>
+              <md-select v-else v-model="stateName" 
+                name="stateName" id="stateName">
+                    <md-option>{{ stateName }}</md-option>
+                </md-select>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>City</label>
+              <md-input @keyup.native="checkAddressInfo()"
+              required v-model="schoolData.address.city"></md-input>
+            </md-input-container>
+          </md-layout>
        </md-layout>
       </md-step>
-      <md-step md-label="Scraton" md-message="Pennsylvania">
-        <p>This seems something I need to focus on just after the first step.</p>
+      <md-step md-label="School Contact" 
+      :md-continue="contactContinued" 
+      md-icon="person">
+        <div class="page-header">
+           <p>
+            <span class="md-subheading">Please complete your primary contact details</span>
+             <br/><span>(*) indicates required fields</span>   
+           </p>  
+       </div>  
+        <md-layout md-row md-gutter="16" md-flex="60" md-align="center"
+            md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
+          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+            <md-input-container  md-clearable>
+              <label>Contact Name</label>
+              <md-input @keyup.native="checkContactInfo()" required v-model="contact.contactName"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+            <md-input-container  md-clearable>
+              <label>Contact Email</label>
+              <md-input @keyup.native="checkContactInfo()" required type="email" v-model="contact.contactEmail"></md-input>
+            </md-input-container>
+          </md-layout>
+        </md-layout>
+        <md-layout md-row md-gutter="16" md-flex="60" md-align="center"
+            md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
+          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+            <md-input-container  md-clearable>
+              <label>Phone Number (office)</label>
+              <md-input type="number" @keyup.native="checkContactInfo()" required v-model="contact.phoneNumber"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="40" md-flex-small="50" md-flex-xsmall="70">
+            <md-input-container  md-clearable>
+              <label>Mobile Number</label>
+              <md-input type="number" @keyup.native="checkContactInfo()" required v-model="contact.mobileNumber"></md-input>
+            </md-input-container>
+          </md-layout>
+        </md-layout>
+      </md-step>
+      <md-step md-label="System Administrator" 
+      :md-continue="adminContinued" 
+      md-icon="person">
+        <div class="page-header">
+           <p>
+            <span class="md-subheading">Please complete your super administrator details</span>
+             <br/><span>(*) indicates required fields</span>   
+           </p>  
+       </div>  
+        <md-layout md-row md-gutter="16" md-flex="80" md-align="center"
+            md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>Email Address</label>
+              <md-input @keyup.native="checkAdminInfo()" required type="email" v-model="schoolData.admin.email"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container  md-clearable>
+              <label>Username</label>
+              <md-input required type="text" @keyup.native="checkAdminInfo()"
+              v-model="schoolData.admin.username"></md-input>
+            </md-input-container>
+          </md-layout>
+          <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
+            <md-input-container md-has-password>
+              <label>Password</label>
+              <md-input required type="password" @keyup.native="checkAdminInfo()"
+              v-model="schoolData.admin.password" >
+              </md-input>
+              <span v-if="isValidLength" 
+                class="md-error">Password must be atleast 6 characters</span>
+            </md-input-container>
+          </md-layout>
+        </md-layout>
       </md-step>
     </md-stepper>
     </md-card-content>
@@ -90,6 +226,8 @@ import store from '../store'
 export default {
   data () {
     return {
+      isValidLength: false,
+      searchable: true,
       total: 0,
       countryCode: '',
       country: {},
@@ -123,9 +261,10 @@ export default {
         }
       ],
       schoolTypeContinued: false,
-      basicContinued: true,
+      basicContinued: false,
       addressContinued: false,
       contactContinued: false,
+      adminContinued: false,
       contact: {
         contactName: '',
         contactEmail: '',
@@ -135,9 +274,9 @@ export default {
       },
       schoolData: {
         schoolType: null,
-        schoolName: '',
-        schoolShortName: '',
-        schoolMotto: '',
+        schoolName: null,
+        schoolShortName: null,
+        schoolMotto: null,
         schoolUrl: '',
         registrationType: null,
         refererCode: '',
@@ -161,23 +300,13 @@ export default {
     }
   },
   methods: {
-    isNullOrEmpty (data) {
-      if (typeof (data) === 'number' || typeof (data) === 'boolean') {
-        return false
+    setStateName () {
+      if (this.stateName) {
+        console.log('State name: ' + this.stateName)
+        this.schoolData.address.state = this.stateName
+        console.log(JSON.stringify(this.schoolData))
+        this.checkAddressInfo()
       }
-      if (typeof (data) === 'undefined' || data === null) {
-        return true
-      }
-      if (typeof (data.length) !== 'undefined') {
-        return data.length === 0
-      }
-      var count = 0
-      for (var i in data) {
-        if (data.hasOwnProperty(i)) {
-          count++
-        }
-      }
-      return count === 0
     },
     showCountry () {
       this.getCountryByCode(this.country, this.getCountry)
@@ -188,16 +317,21 @@ export default {
     getCountries () {
       if (store.state.countryResponse !== null) {
         console.log('Old countries')
+        this.stateName = ''
         return store.state.countryResponse
       } else {
         var data = this.$superagent.get('https://restcountries.eu/rest/v2/all')
         if (data !== null) {
+          this.stateName = ''
           console.log('get all contries' + data)
           this.$store.commit('SET_COUNTRIES', data)
           this.countryResponse = data
           return data
         }
       }
+    },
+    getGeoLatLng (registerCallback) {
+
     },
     getCountryByCodeAndState (callback) {
       console.log('Get country details')
@@ -208,7 +342,8 @@ export default {
           this.country.name = data.name
           this.country.alpha2Code = data.alpha2Code
           this.country.flag = data.flag
-          console.log(JSON.stringify(this.country))
+          this.schoolData.address.country = this.country.name
+          console.log(JSON.stringify(this.schoolData))
           callback(this.country)
         }
       }).catch(error => {
@@ -216,7 +351,7 @@ export default {
       })
     },
     fetchAllStatesByCountry (selectedCountry) {
-      this.states = []
+      this.checkAddressInfo()
       RegionByCountryAPI.get('states/country/' + this.countryCode)
       .then(response => {
         this.states = response.data.data
@@ -239,11 +374,45 @@ export default {
       })
     },
     checkBasicInfo () {
-      if (!this.schoolData.registrationType ||
-          !this.schoolData.schoolType) {
-        this.schoolTypeContinued = false
-      } else {
+      if (this.schoolData.schoolName && this.schoolData.schoolMotto) {
         this.basicContinued = true
+        console.log('After 1: ' + this.basicContinued)
+      } else {
+        this.basicContinued = false
+      }
+    },
+    checkAdminInfo () {
+      if (this.schoolData.admin.password < 6) {
+        this.isValidLength = true
+      }
+      if (this.schoolData.admin.email && this.schoolData.admin.username &&
+      (this.schoolData.admin.password.length === 6 ||
+      this.schoolData.admin.password.length > 6) && this.isValidLength) {
+        this.adminContinued = true
+        console.log('After 1: ' + this.adminContinued)
+      } else {
+        this.adminContinued = false
+      }
+    },
+    checkContactInfo () {
+      if (this.contact.contactName && this.contact.contactEmail &&
+      this.contact.phoneNumber && this.contact.mobileNumber) {
+        this.schoolData.contacts.push(this.contact, 0)
+        this.contactContinued = true
+        console.log('After 1: ' + this.contactContinued)
+      } else {
+        this.contactContinued = false
+      }
+    },
+    checkAddressInfo () {
+      if (this.schoolData.address.addressLine1 && this.schoolData.address.country && this.schoolData.address.city) {
+        if (this.schoolData.address.state && !this.schoolData.address.city) {
+          this.addressContinued = false
+        } else {
+          this.addressContinued = true
+        }
+      } else {
+        this.addressContinued = false
       }
     },
     checkSchoolType () {
@@ -273,7 +442,6 @@ export default {
       if (s.active) {
         this.schoolData.registrationType = s.name
       }
-      console.log('type: ' + this.schoolData.registrationType + ', school: ' + this.schoolData.schoolType)
       this.checkSchoolType()
     },
     toggleSchool (s) {
@@ -286,13 +454,13 @@ export default {
       if (s.active) {
         this.schoolData.schoolType = s.name
       }
-      console.log('type: ' + this.schoolData.registrationType + ', school: ' + this.schoolData.schoolType)
       this.checkSchoolType()
     }
   },
   mounted () {
-    this.checkBasicInfo()
     this.checkSchoolType()
+    this.checkAddressInfo()
+    this.checkBasicInfo()
   }
 }
 </script>
@@ -302,7 +470,7 @@ export default {
     height: 28px;
     width: 48px;
   }
-  ul{
+  .register ul{
     list-style:none;
     color:#fff;
     font-size:16px;
@@ -311,7 +479,7 @@ export default {
     margin:20px 0 15px;
   }
 
-  ul li{
+  .register ul li{
       padding:10px 20px;
       background-color:#e35885;
       margin-bottom:8px;
@@ -319,11 +487,11 @@ export default {
       cursor:pointer;
   }
 
-  ul li span{
+  .register ul li span{
       float:right;
   }
 
-  ul li.active{
+  .register ul li.active{
       background-color:#8ec16d;
   }
 </style>
