@@ -5,6 +5,7 @@ import RegistrationView from '@/components/Registration.vue'
 import ChangePasswordView from '@/components/ChangePassword.vue'
 import AccountVerificationView from '@/components/AccountVerification.vue'
 import ForgetPasswordView from '@/components/ForgetPassword.vue'
+import RegisterSuccessView from '@/components/RegisterSuccess.vue'
 
 // Routes
 const routes = [
@@ -27,6 +28,11 @@ const routes = [
     path: '/forgetpassword',
     name: 'ForgetPassword',
     component: ForgetPasswordView
+  },
+  {
+    path: '/regsuccess',
+    name: 'RegSuccess',
+    component: RegisterSuccessView
   },
   {
     path: '/verify/:code',

@@ -1,12 +1,12 @@
 <template>
-  <md-layout md-column class="marginal" md-flex="60"
-            md-flex-medium="80" md-flex-small="100" md-flex-xsmall="100">
+  <md-layout md-column class="marginal" md-flex="50"
+            md-flex-medium="50" md-flex-small="70" md-flex-xsmall="90">
     <md-card-header class="page-header">
       <img src="../assets/collegefocus_60.png" rel="CollegeFocus" class="image-center"></img>
       <p class="md-title">School Registration</p>
     </md-card-header>
     <md-card-content>
-      <md-stepper md-vertical>
+      <md-stepper md-vertical @completed='getGeoLatLng(registerSchool)'>
       <md-step md-label="Type of Registration" 
       :md-continue="schoolTypeContinued" 
       md-back-continue="Next" md-icon="person">
@@ -193,7 +193,9 @@
           <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
             <md-input-container  md-clearable>
               <label>Email Address</label>
-              <md-input @keyup.native="checkAdminInfo()" required type="email" v-model="schoolData.admin.email"></md-input>
+              <md-input @keyup.native="checkEmail()" required type="email" v-model="schoolData.admin.email"></md-input>
+              <span v-if="isEmailExists === false" 
+                class="md-error">Password must be atleast 6 characters</span>
             </md-input-container>
           </md-layout>
           <md-layout md-column md-flex="30" md-flex-medium="80" md-flex-small="80" md-flex-xsmall="90">
@@ -209,7 +211,7 @@
               <md-input required type="password" @keyup.native="checkAdminInfo()"
               v-model="schoolData.admin.password" >
               </md-input>
-              <span v-if="isValidLength" 
+              <span v-if="isValidLength === false" 
                 class="md-error">Password must be atleast 6 characters</span>
             </md-input-container>
           </md-layout>
@@ -221,11 +223,13 @@
 </template>
 
 <script>
-import { CountryAPI, RegionByCountryAPI } from '../http/http-common'
+import { HTTP2, CountryAPI, RegionByCountryAPI, GeocodeAPI } from '../http/http-common'
 import store from '../store'
 export default {
   data () {
     return {
+      isEmailExists: false,
+      isValidEmail: false,
       isValidLength: false,
       searchable: true,
       total: 0,
@@ -238,24 +242,29 @@ export default {
       states: [],
       services: [
         {
+          key: 'trial',
           name: 'Trial',
           active: false
         },
         {
+          key: 'standard',
           name: 'Standard',
           active: false
         },
         {
+          key: 'premium',
           name: 'Premium',
           active: false
         }
       ],
       schools: [
         {
+          key: 'private',
           name: 'Private',
           active: false
         },
         {
+          key: 'government',
           name: 'Government',
           active: false
         }
@@ -265,35 +274,16 @@ export default {
       addressContinued: false,
       contactContinued: false,
       adminContinued: false,
-      contact: {
-        contactName: '',
-        contactEmail: '',
-        phoneNumber: '',
-        mobileNumber: '',
-        faxNumber: ''
-      },
+      contact: {},
       schoolData: {
-        schoolType: null,
-        schoolName: null,
-        schoolShortName: null,
-        schoolMotto: null,
-        schoolUrl: '',
-        registrationType: null,
-        refererCode: '',
         admin: {
-          username: '',
           email: '',
+          username: '',
           password: ''
         },
         address: {
-          state: '',
-          country: '',
-          city: '',
-          addressLine1: '',
-          addressLine2: '',
-          latitude: '',
-          longitude: '',
-          postalCode: ''
+          latitude: 0.0,
+          longitude: 0.0
         },
         contacts: []
       }
@@ -330,8 +320,68 @@ export default {
         }
       }
     },
+    checkEmail () {
+      if (this.schoolData.admin.email.indexOf('@') !== -1) {
+        HTTP2.get('users/email/check/' + this.schoolData.admin.email).then(response => {
+          var data = response.data
+          if (data !== null) {
+            console.log(JSON.stringify(data.data))
+            this.isEmailExists = data.data
+            if (this.isEmailExists === false) {
+              console.log('I am valid')
+              this.isValidEmail = true
+              this.checkAdminInfo()
+            } else {
+              console.log('I am not valid')
+              this.isValidEmail = false
+              this.adminContinued = false
+            }
+          }
+        }).catch(error => {
+          console.log(JSON.stringify(error))
+        })
+      }
+    },
+    registerSchool () {
+      HTTP2.post('schools/register', this.schoolData).then(response => {
+        var data = response.data
+        if (data !== null) {
+          console.log(JSON.stringify(data))
+        }
+      }).catch(error => {
+        console.log(JSON.stringify(error))
+      })
+    },
     getGeoLatLng (registerCallback) {
+      var address = null
+      if (this.schoolData.address.state) {
+        address = this.schoolData.address.city + ', ' + this.schoolData.address.state + ', ' + this.schoolData.address.country
+      } else {
+        address = this.schoolData.address.city + ', ' + this.schoolData.address.country
+      }
+      GeocodeAPI.get('json', {
+        params: {
+          'address': address,
+          'key': store.state.GEO_API_KEY
+        }
+      }).then(response => {
+        var data = response.data.results
+        console.log('Before: ' + data)
+        if (data.length > 0) {
+          this.schoolData.address.latitude = data[0].geometry.location.lat
+          this.schoolData.address.longitude = data[0].geometry.location.lng
 
+          console.log(JSON.stringify(this.schoolData))
+          registerCallback()
+        } else {
+          console.log('No return')
+          console.log(JSON.stringify(this.schoolData))
+          registerCallback()
+        }
+      }).catch(error => {
+        console.log('Error occured: ' + error)
+        registerCallback()
+      })
     },
     getCountryByCodeAndState (callback) {
       console.log('Get country details')
@@ -382,22 +432,25 @@ export default {
       }
     },
     checkAdminInfo () {
-      if (this.schoolData.admin.password < 6) {
-        this.isValidLength = true
-      }
-      if (this.schoolData.admin.email && this.schoolData.admin.username &&
-      (this.schoolData.admin.password.length === 6 ||
-      this.schoolData.admin.password.length > 6) && this.isValidLength) {
-        this.adminContinued = true
-        console.log('After 1: ' + this.adminContinued)
+      if (!this.isValidEmail) {
+        this.checkEmail()
       } else {
-        this.adminContinued = false
+        if (this.schoolData.admin.password.length < 6) {
+          this.isValidLength = false
+        } else {
+          this.isValidLength = true
+        }
+        if (this.schoolData.admin.email && this.schoolData.admin.username && this.isValidLength && this.isValidEmail) {
+          this.adminContinued = true
+        } else {
+          this.adminContinued = false
+        }
       }
     },
     checkContactInfo () {
       if (this.contact.contactName && this.contact.contactEmail &&
       this.contact.phoneNumber && this.contact.mobileNumber) {
-        this.schoolData.contacts.push(this.contact, 0)
+        this.schoolData.contacts[0] = this.contact
         this.contactContinued = true
         console.log('After 1: ' + this.contactContinued)
       } else {
@@ -440,7 +493,7 @@ export default {
       }
       s.active = !s.active
       if (s.active) {
-        this.schoolData.registrationType = s.name
+        this.schoolData.registrationType = s.key
       }
       this.checkSchoolType()
     },
@@ -452,7 +505,7 @@ export default {
       }
       s.active = !s.active
       if (s.active) {
-        this.schoolData.schoolType = s.name
+        this.schoolData.schoolType = s.key
       }
       this.checkSchoolType()
     }
@@ -461,6 +514,7 @@ export default {
     this.checkSchoolType()
     this.checkAddressInfo()
     this.checkBasicInfo()
+    this.checkEmail()
   }
 }
 </script>
